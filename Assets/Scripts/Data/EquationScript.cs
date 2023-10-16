@@ -93,8 +93,8 @@ public class Matrix<T> {
 		for (int i = 0; i < reference.Count; i++) {
 			var col = new Column<T>();
 
-			for (int o = 0; o < reference[0].Count) {
-				var row = new Row<T>();
+			for (int o = 0; o < reference[0].Count; o++) {
+				var row = new();
 
 				row.Value = reference[i][o];
 

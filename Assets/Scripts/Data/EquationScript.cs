@@ -94,7 +94,7 @@ public class Matrix<T> {
 			var col = new Column<T>();
 
 			for (int o = 0; o < reference[0].Count; o++) {
-				var row = new();
+				var row = new Row<T>();
 
 				row.Value = reference[i][o];
 

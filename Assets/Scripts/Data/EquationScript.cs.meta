@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 64084ba9764e1be4396baa6edc7feaca
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - ItemList: {instanceID: 0}
+  - ExpressionPrefab: {fileID: 200743479247440858, guid: 4bf53c396d7f71f40acf5cac0e4d2fd4, type: 3}
+  - OperatorPrefab: {fileID: 3478464628461550062, guid: 77d2b0d4cbd0f8248925020483b0a10d, type: 3}
+  - NumberPrefab: {fileID: 9174769717432864360, guid: da7bb076643b55d43960b0e17823fdcc, type: 3}
+  - MatrixPrefab: {fileID: 1009089105188119198, guid: 934171118c175334680524e07638ad40, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

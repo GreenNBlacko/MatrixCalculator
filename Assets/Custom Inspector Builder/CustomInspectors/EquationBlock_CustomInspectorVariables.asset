@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1a1d27d594ef94ca6ce2751443c927, type: 3}
+  m_Name: EquationBlock_CustomInspectorVariables
+  m_EditorClassIdentifier: 
+  inspectorVariables:
+  - variableName: type
+    variableType: 3
+    displayType: 0
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 0}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies: []
+  - variableName: _expression
+    variableType: 1
+    displayType: 0
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 0}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies:
+    - dependencyName: type
+      dependencyType: 2
+      comparedValue: 0
+      dependencyVerification: 0
+      verificationModifier: 0
+  - variableName: _operator
+    variableType: 3
+    displayType: 0
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 0}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies:
+    - dependencyName: type
+      dependencyType: 2
+      comparedValue: 1
+      dependencyVerification: 0
+      verificationModifier: 0
+  - variableName: _number
+    variableType: 1
+    displayType: 0
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 0}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies:
+    - dependencyName: type
+      dependencyType: 2
+      comparedValue: 2
+      dependencyVerification: 0
+      verificationModifier: 0
+  - variableName: _matrix
+    variableType: 6
+    displayType: 2
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 0}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies:
+    - dependencyName: type
+      dependencyType: 2
+      comparedValue: 3
+      dependencyVerification: 0
+      verificationModifier: 0
+  - variableName: _fraction
+    variableType: 6
+    displayType: 0
+    customVariableDisplay: 0
+    ModifierOptions: 0
+    Bounds: {x: 0, y: 0}
+    PopupOptions: 
+    ChildClassVariables: {fileID: 11400000, guid: 8a1e6c7d149137f458c93cb0791c3672, type: 2}
+    offset: 4
+    witdh: -1
+    height: 16
+    variableDependencies:
+    - dependencyName: type
+      dependencyType: 2
+      comparedValue: 4
+      dependencyVerification: 0
+      verificationModifier: 0

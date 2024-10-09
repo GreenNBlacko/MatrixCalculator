@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class MatrixInputScript : MonoBehaviour {
 	public Vector2 size = new Vector2(2, 2);
 
-	public List<List<float>> Matrix = new List<List<float>>();
+	public List<List<Fraction>> Matrix = new List<List<Fraction>>();
 
 	public RectTransform ItemList;
 
@@ -18,13 +18,16 @@ public class MatrixInputScript : MonoBehaviour {
 	public TMP_InputField NInput;
 	public TMP_InputField MInput;
 
-	public Action<Matrix<float>> CloseAction;
+	public Action<FractionMatrix> CloseAction;
 
 	[HideInInspector] public const string MatrixSizeError = "Improper matrix size";
 	[HideInInspector] public const string MatrixElementError = "Invalid input at index ({0};{1})";
 
-	private void Start () {
-		UpdateMatrix();
+	public void Setup(FractionMatrix matrix) {
+		if (matrix.columns.Count > 0) {
+			size = new Vector2(matrix.columns.Count, matrix.columns[0].rows.Count);
+			Matrix = matrix.GetMatrix();
+		} else UpdateMatrix();
 
 		DrawMatrix();
 	}
@@ -37,7 +40,7 @@ public class MatrixInputScript : MonoBehaviour {
 		Matrix.Clear();
 
 		for (int i = 0; i < size.x; i++) {
-			var list = new List<float>();
+			var list = new List<Fraction>();
 
 			for (int o = 0; o < size.y; o++) {
 				if (ItemList.childCount <= i || ItemList.GetChild(i).childCount <= o) {
@@ -45,7 +48,7 @@ public class MatrixInputScript : MonoBehaviour {
 					continue;
 				}
 
-				if (!float.TryParse(ItemList.GetChild(i).GetChild(o).GetComponent<TMP_InputField>().text, out float item)) {
+				if (!Fraction.TryParse(ItemList.GetChild(i).GetChild(o).GetComponent<TMP_InputField>().text, out Fraction item)) {
 					item = 0;
 
 					SaveButton.enabled = false;
@@ -63,7 +66,7 @@ public class MatrixInputScript : MonoBehaviour {
 	}
 
 	public void SetX (string input) {
-		if (!int.TryParse(input, out int X) || X < 2) {
+		if (!int.TryParse(input, out int X) || X < 1) {
 			SaveButton.enabled = false;
 			SaveButton.transform.GetChild(0).gameObject.SetActive(false);
 			SaveButton.transform.GetChild(1).gameObject.SetActive(true);
@@ -81,7 +84,7 @@ public class MatrixInputScript : MonoBehaviour {
 	}
 
 	public void SetY (string input) {
-		if (!int.TryParse(input, out int Y) || Y < 2) {
+		if (!int.TryParse(input, out int Y) || Y < 1) {
 			SaveButton.enabled = false;
 			SaveButton.transform.GetChild(0).gameObject.SetActive(false);
 			SaveButton.transform.GetChild(1).gameObject.SetActive(true);
@@ -128,6 +131,8 @@ public class MatrixInputScript : MonoBehaviour {
 
 		if (!SaveButton.enabled || !SaveButton.interactable) { return; }
 
-		CloseAction.Invoke(new Matrix<float>(Matrix));
+		CloseAction.Invoke(new FractionMatrix(Matrix));
+
+		Destroy(gameObject);
 	}
 }

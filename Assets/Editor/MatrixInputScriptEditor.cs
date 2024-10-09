@@ -47,7 +47,8 @@ public class MatrixInputScriptEditor : Editor {
 					for (int o = 0; o < matrixScript.size.y; o++) {
 						var temp = matrixScript.Matrix[i][o];
 
-						matrixScript.Matrix[i][o] = EditorGUILayout.FloatField(matrixScript.Matrix[i][o]);
+						if (Fraction.TryParse(EditorGUILayout.TextField(matrixScript.Matrix[i][o].ToString()), out var value))
+							matrixScript.Matrix[i][o] = value;
 
 						if (matrixScript.Matrix[i][o] != temp)
 							redraw = true;

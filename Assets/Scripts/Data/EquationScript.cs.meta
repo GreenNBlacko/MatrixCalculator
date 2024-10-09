@@ -9,6 +9,10 @@ MonoImporter:
   - OperatorPrefab: {fileID: 3478464628461550062, guid: 77d2b0d4cbd0f8248925020483b0a10d, type: 3}
   - NumberPrefab: {fileID: 9174769717432864360, guid: da7bb076643b55d43960b0e17823fdcc, type: 3}
   - MatrixPrefab: {fileID: 1009089105188119198, guid: 934171118c175334680524e07638ad40, type: 3}
+  - FractionPrefab: {fileID: 3299757077893182887, guid: df0ed08932f349e42a868f45175b3c7d, type: 3}
+  - TablePrefab: {fileID: 6443631755887870424, guid: 8cbe47c2237c125438698350ec058728, type: 3}
+  - TableRowPrefab: {fileID: 8081968618444717744, guid: 72e546fdfc58d204d91ee7a63bedcaeb, type: 3}
+  - TableColumnPrefab: {fileID: 2240596886245942746, guid: 480c38caf91b7c246b0be7b3f9c28216, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

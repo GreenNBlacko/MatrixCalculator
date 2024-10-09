@@ -13,6 +13,10 @@ public class MatrixScript : MonoBehaviour {
 	public GameObject ColumnPrefab;
 	public GameObject RowPrefab;
 
+	public int augmentColumn = -1;
+
+	public enum type { Matrix, Determinant, Augmented };
+
 	public void ResizeMatrix() {
 		var newMatrix = new List<List<string>>();
 
@@ -42,6 +46,14 @@ public class MatrixScript : MonoBehaviour {
 				Destroy(obj.gameObject);
 
 		for (int i = 0; i < size.x; i++) {
+			if (i == augmentColumn) {
+				var separator = Instantiate(transform.GetChild(0).gameObject, ItemList);
+
+				separator.name = "Line";
+
+				separator.transform.SetAsLastSibling();
+			}
+
 			var column = Instantiate(ColumnPrefab, ItemList).transform;
 			column.gameObject.name = "Column_" + i;
 

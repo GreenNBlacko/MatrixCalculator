@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: e0ce3e3adeba5474d89256b452818089
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - MatrixInputDisplay: {fileID: 8297789845127685381, guid: b7202a11342a0f1469867f59e562847c, type: 3}
+  - EquationDisplay: {fileID: 3657452068710298630, guid: 72d0e06f32599904792fc4e9fbc313ca, type: 3}
+  - InputList: {instanceID: 0}
+  - MatrixInputList: {instanceID: 0}
+  - EquationDisplayList: {instanceID: 0}
+  - OperationDropdown: {instanceID: 0}
+  - ButtonA: {instanceID: 0}
+  - ButtonB: {instanceID: 0}
+  - ButtonX: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

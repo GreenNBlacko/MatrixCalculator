@@ -19,91 +19,17 @@ public class EquationScriptEditor : Editor {
 }
 
 [CustomPropertyDrawer(typeof(EquationBlock))]
-public class EquationBlockEditor : PropertyDrawer {
-	public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-		label.text = Enum.GetName(typeof(EquationBlock.Types), property.FindPropertyRelative("type").intValue);
+public class EquationBlockEditor : CIB_PropertyDrawerRenderer {
+	protected override string pt_VariablesPath => CustomInspectorUtility.GetInspectorVariablesPath("EquationBlock");
 
-		EditorGUI.BeginProperty(position, label, property);
+	public override void CustomOnGUI (Rect f_position, ref Rect f_controlRect, SerializedProperty f_property, GUIContent f_label) {
+		pt_InspectorVariables.FetchVariable("_matrix").CustomDrawer = new MatrixEditor();
 
-		int activeItems = 0;
-
-		var itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, 16);
-		EditorGUI.PropertyField(itemRect, property, label);
-		activeItems++;
-
-		if(property.isExpanded) {
-			EditorGUI.indentLevel++;
-
-			var type = property.FindPropertyRelative("type");
-
-			itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, 16);
-			EditorGUI.PropertyField(itemRect, type);
-			activeItems++;
-
-			switch ((EquationBlock.Types)type.intValue) {
-				case EquationBlock.Types.Matrix: 
-					var matrix = property.FindPropertyRelative("_matrix");
-					var height = new MatrixEditor().GetPropertyHeight(matrix, label);
-
-					itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, height);
-
-					EditorGUI.PropertyField(itemRect, matrix);
-
-					activeItems += (int)(height / 19);
-					break;
-
-				case EquationBlock.Types.Number:
-					var number = property.FindPropertyRelative("_number");
-
-					itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, 16);
-					EditorGUI.PropertyField(itemRect, number);
-					activeItems++;
-					break;
-
-				case EquationBlock.Types.Expression:
-					var expr = property.FindPropertyRelative("_expression");
-
-					itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, 16);
-					EditorGUI.PropertyField(itemRect, expr);
-					activeItems++;
-					break;
-
-				case EquationBlock.Types.Operator:
-					var op = property.FindPropertyRelative("_operator");
-
-					itemRect = new Rect(position.x, position.y + 19 * activeItems, position.width, 16);
-					EditorGUI.PropertyField(itemRect, op);
-					activeItems++;
-					break;
-			}
-
-			EditorGUI.indentLevel--;
-		}
-
-		EditorGUI.EndProperty();
+		base.CustomOnGUI(f_position, ref f_controlRect, f_property, f_label);
 	}
 
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
-		float propertyHeight = 19f;
-
-		if (property.isExpanded) {
-			var type = property.FindPropertyRelative("type");
-
-			propertyHeight += 19f;
-
-			switch ((EquationBlock.Types)type.intValue) {
-				case EquationBlock.Types.Matrix:
-					propertyHeight += new MatrixEditor().GetPropertyHeight(property.FindPropertyRelative("_matrix"), label);
-					break;
-
-				default:
-					propertyHeight += 19f;
-					break;
-			}
-
-		}
-
-		return propertyHeight;	
+		return 18 + CustomInspectorUtility.GetPropertyHeight(property, pt_InspectorVariables);
 	}
 }
 
@@ -164,7 +90,7 @@ public class MatrixEditor : PropertyDrawer {
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float propertyHeight = 19f;
 	
-		if(property.isExpanded) {
+		if(property != null && property.isExpanded) {
 			var array = property.FindPropertyRelative("columns");
 
 			propertyHeight += 20f + 19 * array.arraySize;

@@ -6,7 +6,6 @@ using UnityEngine;
 public class Matrix<T> {
 	public Vector2 format => new Vector2(columns.Count, (columns.Count > 0 ? columns[0].rows.Count : 0));
 	public bool square => format.x == format.y;
-
 	public List<Column<T>> columns = new List<Column<T>>();
 
 	public List<List<T>> GetMatrix() {
@@ -239,6 +238,80 @@ public class FractionMatrix : Matrix<Fraction> {
 		return inverseMatrix;
 	}
 
+	public FractionMatrix GaussianInverse() {
+		var table = new Table();
+		var regular = new Color32(0, 0, 0, 0);
+		var selected = new Color32(255, 134, 0, 11);
+		var highlighted = new Color32(49, 77, 121, 33);
+
+		var matrix = CopyMatrix();
+
+		var size = columns.Count;
+
+		var stepResults = new List<List<Fraction>>();
+
+		for (int i = 0; i < size / 2; i++) {
+			var sums = new List<Fraction>(new Fraction[matrix.columns[0].rows.Count]);
+
+			var rowmult = 1;
+
+			for (int a = size / 2; a > size / 2 - i; a--) {
+				rowmult += a + 1;
+			}
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Display matrix and sums
+				Fraction sum = 0;
+				for (int p = i; p < size; p++) {
+					sum += matrix[p][o];
+				}
+				sums[o] = sum;
+			}
+
+			var divisions = new List<Fraction>();
+
+			divisions.Assign(size, 0);
+
+			for (int p = i; p < size; p++) { // Compute the divisions
+				divisions[p] = matrix[p][0] / matrix[i][0];
+			}
+
+			stepResults.Add(divisions);
+
+			matrix = matrix.RemoveRow(0);
+
+			var old = matrix.CopyMatrix();
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Update matrix values (no display)
+				for (int p = i; p < size; p++) {
+					matrix.columns[p].rows[o].Value = old[p][o] - old[i][o] * divisions[p];
+				}
+			}
+		}
+
+		var inverseMatrix = new FractionMatrix(size / 2, size / 2);
+
+		// Back substitution to compute inverse values from stepResults
+		for (int row = size / 2 - 1; row >= 0; row--) {
+			var rowmult = 1 + row;
+
+			for (int a = size / 2; a > 0; a--) {
+				rowmult += a + 1;
+			}
+			for (int col = 0; col < size / 2; col++) {
+				// Start with the corresponding division result from stepResults
+				Fraction result = stepResults[row][col + size / 2];
+
+				// Subtract the products of previously computed rows to ensure back substitution
+				for (int prevRow = size / 2 - 1; prevRow > row; prevRow--) {
+					result -= stepResults[row][prevRow] * inverseMatrix[col][prevRow];
+				}
+
+				inverseMatrix[col][row] = result;
+			}
+		}
+
+		return inverseMatrix;
+	}
 
 	public FractionMatrix GaussianEliminate() {
 		int rowCount = (int)format.y;
@@ -407,7 +480,7 @@ public class FractionMatrix : Matrix<Fraction> {
 		return solutions;
 	}
 
-	public FractionMatrix SolveJacobi(int maxIterations = 3, double tolerance = 0.01) {
+	public FractionMatrix SolveJacobi(int maxIterations = 1000, double tolerance = 0) {
 		int n = columns[0].rows.Count;  // Number of variables
 		FractionMatrix X = new FractionMatrix(1, n);  // Initialize solution matrix X with zeros
 
@@ -720,39 +793,205 @@ public class StringMatrix : Matrix<string> {
 			.GetEquation();
 	}
 
-	public List<EquationBuilder> GaussianEliminateWithSteps() {
-		int rowCount = (int)format.y;
-		int colCount = (int)format.x;
+	public Table GaussianInverse() {
+		var table = new Table();
+		var regular = new Color32(0, 0, 0, 0);
+		var selected = new Color32(255, 134, 0, 11);
+		var highlighted = new Color32(49, 77, 121, 33);
 
-		List<EquationBuilder> solvingSteps = new List<EquationBuilder>();
+		var matrix = UtilManager.convertToFractionMatrix(this);
 
-		for (int pivot = 0; pivot < Math.Min(rowCount, colCount); pivot++) {
-			int maxRow = pivot;
-			for (int row = pivot + 1; row < rowCount; row++) {
-				if (Fraction.Parse(columns[pivot].rows[row].Value).Abs() > Fraction.Parse(columns[pivot].rows[maxRow].Value).Abs())
-					maxRow = row;
-			}
+		var size = columns.Count;
 
-			if (maxRow != pivot) {
-				SwapRows(pivot, maxRow);
-				solvingSteps.Add(CreateStep($"A<sub>{pivot + 1}\u2194{maxRow + 1}</sub>"));
-			}
+		var cols = new List<(string label, Color32 color)>();
 
-			for (int row = pivot + 1; row < rowCount; row++) {
-				Fraction pivotValue = Fraction.Parse(columns[pivot].rows[pivot].Value);
-				if (pivotValue == 0) continue;
-
-				Fraction factor = Fraction.Parse(columns[pivot].rows[row].Value) / pivotValue;
-				for (int col = pivot; col < colCount; col++) {
-					Fraction newValue = Fraction.Parse(columns[col].rows[row].Value) - factor * Fraction.Parse(columns[col].rows[pivot].Value);
-					columns[col].rows[row].Value = newValue.ToString();
-				}
-
-				solvingSteps.Add(CreateStep($"R<sub>{row + 1}</sub> - ({factor}) * R<sub>{pivot + 1}</sub>"));
+		foreach (var value in new List<string> { "x", "i" }) {
+			for (int i = 0; i < size / 2; i++) {
+				cols.Add(($"{value}<sub>{i}</sub>", regular));
 			}
 		}
 
-		return solvingSteps;
+		cols.Add(("Sums", regular));
+		table.AddRow(cols);
+
+		var vals = new List<Fraction>(new Fraction[cols.Count]);
+		var stepResults = new List<List<Fraction>>();
+
+		for (int i = 0; i < size / 2; i++) {
+			var sums = new List<Fraction>(new Fraction[matrix.columns[0].rows.Count]);
+
+			var rowmult = 1;
+
+			for (int a = size / 2; a > size / 2 - i; a--) {
+				rowmult += a + 1;
+			}
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Display matrix and sums
+				table.AddRow(size);
+
+				Fraction sum = 0;
+				for (int p = i; p < size; p++) {
+					sum += matrix[p][o];
+
+					table.SetValue(o + rowmult, p, (matrix[p][o].ToString(), p == i && o == 0 && i != size / 2 - 1 ? selected : regular));
+				}
+				table.SetValue(o + rowmult, cols.Count - 1, (sum.ToString(), regular));
+				sums[o] = sum;
+			}
+
+			var divisions = new List<Fraction>();
+
+			divisions.Assign(size, 0);
+
+			table.AddRow(cols.Count);
+			for (int p = i; p < size; p++) { // Compute the divisions
+				divisions[p] = matrix[p][0] / matrix[i][0];
+
+				table.SetValue(matrix.columns[0].rows.Count + rowmult, p, (divisions[p].ToString(), highlighted));
+			}
+
+			table.SetValue(matrix.columns[0].rows.Count + rowmult, cols.Count - 1, ((sums[0] / matrix[i][0]).ToString(), highlighted));
+
+			stepResults.Add(divisions);
+
+			matrix = matrix.RemoveRow(0);
+
+			var old = matrix.CopyMatrix();
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Update matrix values (no display)
+				for (int p = i; p < size; p++) {
+					matrix.columns[p].rows[o].Value = old[p][o] - old[i][o] * divisions[p];
+				}
+			}
+		}
+
+		var inverseMatrix = new FractionMatrix(size / 2, size / 2);
+
+		// Back substitution to compute inverse values from stepResults
+		for (int row = size / 2 - 1; row >= 0; row--) {
+			var rowmult = 1 + row;
+
+			for (int a = size / 2; a > 0; a--) {
+				rowmult += a + 1;
+			}
+			for (int col = 0; col < size / 2; col++) {
+				// Start with the corresponding division result from stepResults
+				Fraction result = stepResults[row][col + size / 2];
+
+				// Subtract the products of previously computed rows to ensure back substitution
+				for (int prevRow = size / 2 - 1; prevRow > row; prevRow--) {
+					result -= stepResults[row][prevRow] * inverseMatrix[col][prevRow];
+				}
+
+				inverseMatrix[col][row] = result;
+
+				// Display each computed entry in the inverse matrix
+				table.SetValue(rowmult, col + size / 2, (result.ToString(), regular));
+			}
+			table.SetValue(rowmult, cols.Count - 1, ($"Row {row + 1}", regular));
+		}
+
+		return table;
+	}
+
+	public Table GaussianEliminate() {
+		var table = new Table();
+		var regular = new Color32(0, 0, 0, 0);
+		var selected = new Color32(255, 134, 0, 11);
+		var highlighted = new Color32(49, 77, 121, 33);
+
+		var matrix = UtilManager.convertToFractionMatrix(this);
+
+		var size = columns.Count;
+		var rows = columns[0].rows.Count;
+
+		var cols = new List<(string label, Color32 color)>();
+
+		for (int i = 0; i < rows; i++) {
+			cols.Add(($"a<sub>{i}</sub>", regular));
+		}
+
+		cols.Add(("b", regular));
+
+		cols.Add(("Sums", regular));
+		table.AddRow(cols);
+
+		var vals = new List<Fraction>(new Fraction[cols.Count]);
+		var stepResults = new List<List<Fraction>>();
+
+		for (int i = 0; i < rows; i++) {
+			var sums = new List<Fraction>(new Fraction[matrix.columns[0].rows.Count]);
+
+			var rowmult = 1;
+
+			for (int a = rows; a > rows - i; a--) {
+				rowmult += a + 1;
+			}
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Display matrix and sums
+				table.AddRow(size);
+
+				Fraction sum = 0;
+				for (int p = i; p < size; p++) {
+					sum += matrix[p][o];
+
+					table.SetValue(o + rowmult, p, (matrix[p][o].ToString(), p == i && o == 0 && i != rows - 1 ? selected : regular));
+				}
+				table.SetValue(o + rowmult, cols.Count - 1, (sum.ToString(), regular));
+				sums[o] = sum;
+			}
+
+			var divisions = new List<Fraction>();
+
+			divisions.Assign(size, 0);
+
+			table.AddRow(cols.Count);
+			for (int p = i; p < size; p++) { // Compute the divisions
+				divisions[p] = matrix[p][0] / matrix[i][0];
+
+				table.SetValue(matrix.columns[0].rows.Count + rowmult, p, (divisions[p].ToString(), highlighted));
+			}
+
+			table.SetValue(matrix.columns[0].rows.Count + rowmult, cols.Count - 1, ((sums[0] / matrix[i][0]).ToString(), highlighted));
+
+			stepResults.Add(divisions);
+
+			matrix = matrix.RemoveRow(0);
+
+			var old = matrix.CopyMatrix();
+
+			for (int o = 0; o < matrix.columns[0].rows.Count; o++) { // Update matrix values (no display)
+				for (int p = i; p < size; p++) {
+					matrix.columns[p].rows[o].Value = old[p][o] - old[i][o] * divisions[p];
+				}
+			}
+		}
+
+		var Solution = new FractionMatrix(1, rows);
+
+		// Back substitution to compute inverse values from stepResults
+		for (int row = rows - 1; row >= 0; row--) {
+			var rowmult = 1 + row;
+
+			for (int a = rows; a > 0; a--) {
+				rowmult += a + 1;
+			}
+			// Start with the corresponding division result from stepResults
+			Fraction result = stepResults[row][rows];
+
+			// Subtract the products of previously computed rows to ensure back substitution
+			for (int prevRow = rows - 1; prevRow > row; prevRow--) {
+				result -= stepResults[row][prevRow] * Solution[0][prevRow];
+			}
+
+			Solution[0][row] = result;
+
+			// Display each computed entry in the inverse matrix
+			table.SetValue(rowmult, cols.Count - 2, (result.ToString(), regular));
+			table.SetValue(rowmult, cols.Count - 1, ($"x<sub>{row + 1}</sub>", regular));
+		}
+
+		return table;
 	}
 
 	public List<EquationBuilder> BackSubstituteWithSteps() {
@@ -825,10 +1064,6 @@ public class StringMatrix : Matrix<string> {
 						principalCol = i;
 					}
 				}
-			}
-
-			if (maxElement == 0) {
-				throw new InvalidOperationException("Matrix is singular and cannot be solved using the principal element method.");
 			}
 
 			for (int i = 0; i < augmentedMatrix.columns[0].rows.Count; i++) {

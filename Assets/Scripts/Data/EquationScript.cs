@@ -52,6 +52,7 @@ public class EquationScript : MonoBehaviour {
 					matrix.GetComponent<MatrixScript>().augmentColumn = (int)Mathf.Min(e._matrix.format.x, e._matrix.format.y);
 					matrix.GetComponent<MatrixScript>().size = new Vector2(e._matrix.columns.Count, e._matrix.columns[0].rows.Count);
 					matrix.GetComponent<MatrixScript>().Matrix = e._matrix.GetMatrix();
+					matrix.GetComponent<MatrixScript>().augmented = e.augmented;
 					matrix.GetComponent<MatrixScript>().DrawMatrix();
 
 					if (!e.determinant) {
@@ -272,9 +273,12 @@ public class Fraction {
 		var _nom = sides[0];
 		var _den = sides.Length > 1 ? sides[1] : "1";
 
-
-		nom = System.Numerics.BigInteger.Parse(_nom);
-		den = System.Numerics.BigInteger.Parse(_den);
+		try {
+			nom = System.Numerics.BigInteger.Parse(_nom);
+			den = System.Numerics.BigInteger.Parse(_den);
+		} catch {
+			return double.Parse(fraction);
+		}
 
 		return new Fraction(nom, den);
 	}

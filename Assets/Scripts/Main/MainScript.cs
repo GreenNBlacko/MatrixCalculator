@@ -43,7 +43,7 @@ public class MainScript : MonoBehaviour {
 		GetRank,
 		InverseMatrix,
 		InverseMatrixEquation,
-		MatrixEquation,
+		GaussianElimination,
 		MainElementMethod,
 		JacobiMethod,
 		RelaxationMethod
@@ -64,7 +64,7 @@ public class MainScript : MonoBehaviour {
 
 		var result = matrix.PrincipalElementMethod();
 
-		foreach(var res in result.columns[0].rows) {
+		foreach (var res in result.columns[0].rows) {
 			Debug.Log(res.Value);
 		}
 
@@ -210,7 +210,7 @@ public class MainScript : MonoBehaviour {
 			case Operations.RelaxationMethod:
 			case Operations.JacobiMethod:
 			case Operations.MainElementMethod:
-			case Operations.MatrixEquation:
+			case Operations.GaussianElimination:
 				var ME_DisplayA = CreateEquation();
 
 
@@ -285,94 +285,36 @@ public class MainScript : MonoBehaviour {
 				R_DisplayR.SetEquations(EquationScript.BuildEquation()
 					.AddExpression("r(A)")
 					.AddOperator(EquationBlock.Operators.Equals)
-					.AddNumber((double)fm_X.rank)
+					.AddNumber(fm_X.rank)
 					.GetEquation());
 				break;
 
 			case Operations.InverseMatrix:
+				var n = fm_X.columns.Count;
+
+				var matrix = fm_X.CopyMatrix();
+
+				for (int i = 0; i < n; i++) {
+					var ls = new List<Fraction>();
+					for (int o = 0; o < n; o++)
+						ls.Add(i == o ? 1 : 0);
+					matrix.columns.Add(new Column<Fraction>(ls));
+				}
+
 				// Create the initial display for the original matrix A
 				var FM_DisplayA = CreateEquation();
 				FM_DisplayA.SetEquations(EquationScript.BuildEquation()
-					.AddExpression("A")
+					.AddExpression("A|I")
 					.AddOperator(EquationBlock.Operators.Equals)
-					.AddMatrix(fm_X) // Assuming fm_X is the original matrix A
+					.AddAugmented(UtilManager.convertToStrMatrix(matrix)) // Assuming fm_X is the original matrix A
 					.GetEquation());
 
-				// Calculate the determinant and create the display
-				var det = ~fm_X;
+				var FM_DisplaySol = CreateEquation();
 
-				var FM_DisplayDet = CreateEquation();
-				FM_DisplayDet.SetEquations(EquationScript.BuildEquation()
-					.AddExpression("|A|")
-					.AddOperator(EquationBlock.Operators.Equals)
-					.AddExpression(det.ToString())
-					.GetEquation());
-
-				// Check if the determinant is non-zero
-				if (det != 0) {
-					// Create the identity matrix to augment with the original matrix
-					var identityMatrix = new FractionMatrix();
-					int n = fm_X.columns.Count;
-
-					// Create identity matrix
-					for (int i = 0; i < n; i++) {
-						var row = new List<Fraction>();
-						for (int j = 0; j < n; j++) {
-							row.Add(i == j ? 1 : 0);
-						}
-						identityMatrix.columns.Add(new Column<Fraction>(row));
-					}
-
-					// Create the augmented matrix display
-					var FM_DisplayAugmented = CreateEquation();
-					FM_DisplayAugmented.SetEquations(EquationScript.BuildEquation()
-						.AddAugmented(fm_X, identityMatrix) // Use AddAugmented to show [A | I]
-						.GetEquation());
-
-					// Iterate through each row to display operations
-					for (int i = 0; i < fm_X.columns.Count; i++) {
-						// Display row normalization
-						var FM_DisplayNormalization = CreateEquation();
-						FM_DisplayNormalization.SetEquations(EquationScript.BuildEquation()
-							.AddExpression($"Normalize row {i + 1} by dividing by {fm_X.getValue(i, i)}")
-							.GetEquation());
-
-						// Display elimination operations
-						for (int o = 0; o < fm_X.columns.Count; o++) {
-							if (o != i) {
-								var factor = fm_X.getValue(o, i);
-								var FM_DisplayElimination = CreateEquation();
-								FM_DisplayElimination.SetEquations(EquationScript.BuildEquation()
-									.AddExpression($"Eliminate element in row {o + 1}, column {i + 1} by subtracting {factor} * row {i + 1}")
-									.GetEquation());
-							}
-						}
-
-						// Optionally, you can display the current state of the matrix after each operation
-						var currentMatrixDisplay = CreateEquation();
-						currentMatrixDisplay.SetEquations(EquationScript.BuildEquation()
-							.AddExpression($"Current state after row operations:")
-							.AddMatrix(fm_X) // Assuming fm_X is updated in the loop
-							.GetEquation());
-					}
-
-					// Display the final inverse matrix
-					var FM_DisplaySol = CreateEquation();
-					FM_DisplaySol.SetEquations(EquationScript.BuildEquation()
-						.AddExpression("A<sup>-1</sup>")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddFraction("1", det.ToString())
-						.AddMatrix(fm_X.Inverse()) // Assuming fm_X.Inverse() gives the final result
-						.GetEquation());
-				} else {
-					// If no solution, display the no result message
-					var FM_DisplayNoSol = CreateEquation();
-					FM_DisplayNoSol.SetEquations(EquationScript.BuildEquation()
-						.AddExpression("A<sup>-1</sup>")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddExpression("No result")
-						.GetEquation());
-				}
+				FM_DisplaySol.SetEquations(EquationScript.BuildEquation()
+					.AddTable(UtilManager.convertToStrMatrix(matrix).GaussianInverse())
+					.GetEquation()
+				);
 				break;
 
 
@@ -385,135 +327,59 @@ public class MainScript : MonoBehaviour {
 					.AddMatrix(fm_A) // Assuming fm_X is the original matrix A
 					.GetEquation());
 
-				// Calculate the determinant and create the display
-				det = ~fm_A;
+				n = fm_A.columns.Count;
+				matrix = fm_A.CopyMatrix();
 
-				FM_DisplayDet = CreateEquation();
-				FM_DisplayDet.SetEquations(EquationScript.BuildEquation()
-					.AddExpression("|A|")
+				for (int i = 0; i < n; i++) {
+					var ls = new List<Fraction>();
+					for (int o = 0; o < n; o++)
+						ls.Add(i == o ? 1 : 0);
+					matrix.columns.Add(new Column<Fraction>(ls));
+				}
+
+				// Display the final inverse matrix
+				FM_DisplaySol = CreateEquation();
+				FM_DisplaySol.SetEquations(EquationScript.BuildEquation()
+					.AddExpression("A<sup>-1</sup>")
 					.AddOperator(EquationBlock.Operators.Equals)
-					.AddExpression(det.ToString())
+					.AddMatrix(matrix.GaussianInverse())
 					.GetEquation());
 
-				// Check if the determinant is non-zero
-				if (det != 0) {
-					// Create the identity matrix to augment with the original matrix
-					var identityMatrix = new FractionMatrix();
-					int n = fm_A.columns.Count;
+				var inverse = matrix.GaussianInverse();
 
-					// Create identity matrix
-					for (int i = 0; i < n; i++) {
-						var row = new List<Fraction>();
-						for (int j = 0; j < n; j++) {
-							row.Add(i == j ? 1 : 0);
-						}
-						identityMatrix.columns.Add(new Column<Fraction>(row));
-					}
+				var IMM_Display = CreateEquation();
 
-					// Create the augmented matrix display
-					var FM_DisplayAugmented = CreateEquation();
-					FM_DisplayAugmented.SetEquations(EquationScript.BuildEquation()
-						.AddAugmented(fm_A, identityMatrix) // Use AddAugmented to show [A | I]
-						.GetEquation());
-
-					// Iterate through each row to display operations
-					for (int i = 0; i < fm_A.columns.Count; i++) {
-						// Display row normalization
-						var FM_DisplayNormalization = CreateEquation();
-						FM_DisplayNormalization.SetEquations(EquationScript.BuildEquation()
-							.AddExpression($"Normalize row {i + 1} by dividing by {fm_A.getValue(i, i)}")
-							.GetEquation());
-
-						// Display elimination operations
-						for (int o = 0; o < fm_A.columns.Count; o++) {
-							if (o != i) {
-								var factor = fm_A.getValue(o, i);
-								var FM_DisplayElimination = CreateEquation();
-								FM_DisplayElimination.SetEquations(EquationScript.BuildEquation()
-									.AddExpression($"Eliminate element in row {o + 1}, column {i + 1} by subtracting {factor} * row {i + 1}")
-									.GetEquation());
-							}
-						}
-
-						// Optionally, you can display the current state of the matrix after each operation
-						var currentMatrixDisplay = CreateEquation();
-						currentMatrixDisplay.SetEquations(EquationScript.BuildEquation()
-							.AddExpression($"Current state after row operations:")
-							.AddMatrix(fm_A)
-							.GetEquation());
-					}
-
-					// Display the final inverse matrix
-					var FM_DisplaySol = CreateEquation();
-					FM_DisplaySol.SetEquations(EquationScript.BuildEquation()
-						.AddExpression("A<sup>-1</sup>")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddFraction("1", det.ToString())
-						.AddMatrix(fm_A.Inverse())
-						.GetEquation());
-
-					var inverse = fm_A.Inverse();
-
-					var IMM_Display = CreateEquation();
-
-					IMM_Display.SetEquations(EquationScript.BuildEquation()
-						.AddExpression("X")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddExpression("B")
-						.AddOperator(EquationBlock.Operators.Multiply)
-						.AddExpression("A<sup>-1</sup>")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddMatrix(fm_B)
-						.AddOperator(EquationBlock.Operators.Multiply)
-						.AddMatrix(inverse)
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddMatrix(fm_B * inverse)
-						.GetEquation());
-				} else {
-					// If no solution, display the no result message
-					var FM_DisplayNoSol = CreateEquation();
-					FM_DisplayNoSol.SetEquations(EquationScript.BuildEquation()
-						.AddExpression("A<sup>-1</sup>")
-						.AddOperator(EquationBlock.Operators.Equals)
-						.AddExpression("No result")
-						.GetEquation());
-				}
+				IMM_Display.SetEquations(EquationScript.BuildEquation()
+					.AddExpression("X")
+					.AddOperator(EquationBlock.Operators.Equals)
+					.AddExpression("A<sup>-1</sup>")
+					.AddOperator(EquationBlock.Operators.Multiply)
+					.AddExpression("B")
+					.AddOperator(EquationBlock.Operators.Equals)
+					.AddMatrix(inverse)
+					.AddOperator(EquationBlock.Operators.Multiply)
+					.AddMatrix(fm_B)
+					.AddOperator(EquationBlock.Operators.Equals)
+					.AddMatrix(inverse * fm_B)
+					.GetEquation());
 				break;
 
-			case Operations.MatrixEquation:
+			case Operations.GaussianElimination:
 				var augment = fm_A.Augment(fm_B) as FractionMatrix;
 
-				var solvingSteps = UtilManager.convertToStrMatrix(augment).GaussianEliminateWithSteps();
-
-				augment.GaussianEliminate();
-
-				var subSteps = UtilManager.convertToStrMatrix(augment).BackSubstituteWithSteps();
-
-				foreach (var step in solvingSteps) {
-					var stepDisplay = CreateEquation();
-
-					stepDisplay.SetEquations(step.GetEquation());
-				}
-
-				foreach (var step in subSteps) {
-					var stepDisplay = CreateEquation();
-
-					stepDisplay.SetEquations(step.GetEquation());
-				}
+				var table = UtilManager.convertToStrMatrix(augment).GaussianEliminate();
 
 				var ME_DisplaySol = CreateEquation();
 
 				ME_DisplaySol.SetEquations(EquationScript.BuildEquation()
-					.AddExpression("X")
-					.AddOperator(EquationBlock.Operators.Equals)
-					.AddMatrix(new FractionMatrix(new List<List<Fraction>> { augment.BackSubstitute() }))
+					.AddTable(table)
 					.GetEquation());
 				break;
 
 			case Operations.MainElementMethod:
 				augment = fm_A.Augment(fm_B) as FractionMatrix;
 
-				var table = UtilManager.convertToStrMatrix(augment).PrincipalElementMethod();
+				table = UtilManager.convertToStrMatrix(augment).PrincipalElementMethod();
 
 				var X = augment.PrincipalElementMethod();
 
@@ -661,7 +527,7 @@ public class MainScript : MonoBehaviour {
 			case Operations.JacobiMethod:
 			case Operations.InverseMatrixEquation:
 			case Operations.MainElementMethod:
-			case Operations.MatrixEquation:
+			case Operations.GaussianElimination:
 				ButtonA.gameObject.SetActive(true);
 				ButtonB.gameObject.SetActive(true);
 				break;

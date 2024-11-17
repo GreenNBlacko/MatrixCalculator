@@ -13,6 +13,8 @@ public class MatrixScript : MonoBehaviour {
 	public GameObject ColumnPrefab;
 	public GameObject RowPrefab;
 
+	public bool augmented = false;
+
 	public int augmentColumn = -1;
 
 	public enum type { Matrix, Determinant, Augmented };
@@ -46,7 +48,7 @@ public class MatrixScript : MonoBehaviour {
 				Destroy(obj.gameObject);
 
 		for (int i = 0; i < size.x; i++) {
-			if (i == augmentColumn) {
+			if (i == augmentColumn && augmented) {
 				var separator = Instantiate(transform.GetChild(0).gameObject, ItemList);
 
 				separator.name = "Line";

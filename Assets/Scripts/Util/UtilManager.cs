@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 
@@ -75,5 +76,12 @@ public static class UtilManager {
 		var r = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z]) | (?<=[^A-Z])(?=[A-Z]) | (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
 
 		return r.Replace(s, " ");
+	}
+}
+
+public static class ListExtensions {
+	public static void Assign<T>(this IList<T> list, int count, T value = default) {
+		for(int i = 0; i < count; i++)
+			list.Add(value);
 	}
 }
